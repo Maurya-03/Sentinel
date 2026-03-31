@@ -1,0 +1,130 @@
+{
+  "SQL_INJECTION": {
+    "cwe": "CWE-89",
+    "cvss_base": 9.8,
+    "severity": "CRITICAL",
+    "owasp": "A03:2021 - Injection",
+    "explanation": "SQL Injection occurs when user-supplied input is incorporated into database queries without proper sanitization or parameterization. An attacker can manipulate the query structure to bypass authentication, extract sensitive data, modify records, or execute administrative operations on the database.",
+    "impact": "Complete database compromise including unauthorized data access, modification, or deletion. Potential for authentication bypass, privilege escalation, and in some configurations, remote code execution via database system commands (xp_cmdshell, INTO OUTFILE).",
+    "mitigation": [
+      "Use parameterized queries (prepared statements) exclusively — never concatenate user input into SQL strings",
+      "Implement an ORM (SQLAlchemy, Hibernate, ActiveRecord) as an abstraction layer",
+      "Apply strict input validation and allowlisting on all user-supplied data",
+      "Run database accounts with minimum required privileges (principle of least privilege)",
+      "Enable WAF rules targeting SQL injection patterns",
+      "Regularly audit database query logs for anomalous patterns"
+    ],
+    "references": [
+      "https://owasp.org/www-community/attacks/SQL_Injection",
+      "https://cwe.mitre.org/data/definitions/89.html",
+      "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html"
+    ]
+  },
+  "XSS": {
+    "cwe": "CWE-79",
+    "cvss_base": 6.1,
+    "severity": "HIGH",
+    "owasp": "A03:2021 - Injection",
+    "explanation": "Cross-Site Scripting (XSS) occurs when an application includes user-controllable data in output without proper encoding, allowing attackers to inject client-side scripts. Reflected XSS executes immediately; Stored XSS persists and affects all visitors; DOM-based XSS manipulates client-side logic.",
+    "impact": "Session hijacking via cookie theft, credential harvesting through fake login forms, defacement, malware distribution, keylogging, and bypassing CSRF protections. Can lead to full account takeover.",
+    "mitigation": [
+      "Apply context-aware output encoding (HTML, JavaScript, CSS, URL context) using trusted libraries",
+      "Implement a strict Content-Security-Policy header to restrict script sources",
+      "Set HttpOnly and Secure flags on all session cookies",
+      "Use modern frameworks (React, Vue, Angular) that auto-escape by default",
+      "Validate input on server side — reject unexpected characters",
+      "Enable X-XSS-Protection header as a secondary defense"
+    ],
+    "references": [
+      "https://owasp.org/www-community/attacks/xss/",
+      "https://cwe.mitre.org/data/definitions/79.html",
+      "https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html"
+    ]
+  },
+  "MISSING_CSP": {
+    "cwe": "CWE-693",
+    "cvss_base": 5.4,
+    "severity": "MEDIUM",
+    "owasp": "A05:2021 - Security Misconfiguration",
+    "explanation": "The Content-Security-Policy header is absent, removing a critical browser-enforced defense against XSS and data injection attacks. Without CSP, browsers have no instruction set for restricting resource origins.",
+    "impact": "Increases attack surface for XSS exploitation. Allows loading of arbitrary external scripts, styles, and frames. Enables clickjacking and data exfiltration to attacker-controlled domains.",
+    "mitigation": [
+      "Implement a strict CSP: default-src 'self'; script-src 'self' 'nonce-{random}'",
+      "Start with report-only mode (Content-Security-Policy-Report-Only) to detect violations without breaking functionality",
+      "Use CSP nonces or hashes instead of 'unsafe-inline'",
+      "Define report-uri or report-to for violation monitoring"
+    ],
+    "references": [
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP",
+      "https://csp.withgoogle.com/docs/strict-csp.html"
+    ]
+  },
+  "MISSING_HSTS": {
+    "cwe": "CWE-319",
+    "cvss_base": 5.9,
+    "severity": "MEDIUM",
+    "owasp": "A05:2021 - Security Misconfiguration",
+    "explanation": "Strict-Transport-Security (HSTS) header is missing. Without HSTS, browsers may accept HTTP connections, making users vulnerable to SSL stripping attacks where an attacker can downgrade HTTPS to HTTP.",
+    "impact": "Susceptibility to man-in-the-middle attacks, SSL stripping, and cookie theft over unencrypted connections. Particularly dangerous on public Wi-Fi networks.",
+    "mitigation": [
+      "Add: Strict-Transport-Security: max-age=31536000; includeSubDomains; preload",
+      "Ensure all HTTP traffic is permanently redirected (301) to HTTPS",
+      "Submit domain to HSTS preload list at hstspreload.org",
+      "Set max-age to at least 1 year (31536000 seconds)"
+    ],
+    "references": [
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security",
+      "https://hstspreload.org"
+    ]
+  },
+  "MISSING_X_FRAME_OPTIONS": {
+    "cwe": "CWE-1021",
+    "cvss_base": 4.3,
+    "severity": "MEDIUM",
+    "owasp": "A05:2021 - Security Misconfiguration",
+    "explanation": "The X-Frame-Options header is absent, allowing the page to be embedded in iframes on external domains. This enables clickjacking attacks where users are tricked into clicking hidden elements.",
+    "impact": "Clickjacking attacks enabling unauthorized actions, UI redressing, phishing via deceptive overlays, and potential CSRF bypass.",
+    "mitigation": [
+      "Add: X-Frame-Options: DENY (or SAMEORIGIN if iframe embedding is needed internally)",
+      "Alternatively, use CSP frame-ancestors directive: frame-ancestors 'none'",
+      "Test iframe embedding from external origins is properly blocked"
+    ],
+    "references": [
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options",
+      "https://owasp.org/www-community/attacks/Clickjacking"
+    ]
+  },
+  "OPEN_PORT": {
+    "cwe": "CWE-200",
+    "cvss_base": 3.7,
+    "severity": "LOW",
+    "owasp": "A05:2021 - Security Misconfiguration",
+    "explanation": "An unnecessary or unexpected port is open and accepting connections. Exposed services expand the attack surface, especially if running outdated software or default credentials.",
+    "impact": "Direct exploitation of service vulnerabilities, brute-force attacks on authentication, lateral movement if internal services are exposed, and information disclosure about the technology stack.",
+    "mitigation": [
+      "Close all ports not required for the application to function",
+      "Apply firewall rules (iptables, AWS Security Groups, etc.) to restrict access",
+      "Ensure all exposed services run with updated, patched software",
+      "Disable default accounts and change default credentials immediately",
+      "Segment internal services (database, admin) from the public-facing network"
+    ],
+    "references": [
+      "https://owasp.org/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server"
+    ]
+  },
+  "MISSING_X_CONTENT_TYPE": {
+    "cwe": "CWE-430",
+    "cvss_base": 3.7,
+    "severity": "LOW",
+    "owasp": "A05:2021 - Security Misconfiguration",
+    "explanation": "X-Content-Type-Options: nosniff header is missing. Without this header, browsers may perform MIME-type sniffing, executing files as a different content type than declared.",
+    "impact": "MIME confusion attacks allowing execution of uploaded files as HTML or JavaScript, enabling XSS via file uploads.",
+    "mitigation": [
+      "Add: X-Content-Type-Options: nosniff to all responses",
+      "Ensure correct Content-Type headers are set on all responses"
+    ],
+    "references": [
+      "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options"
+    ]
+  }
+}
