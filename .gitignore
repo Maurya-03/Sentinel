@@ -1,12 +1,19 @@
+<<<<<<< HEAD
 # Root .gitignore for the Sentinel workspace
 
 # Node / Next.js
+=======
+# .gitignore for sentinel-ui (Next.js)
+
+# Node
+>>>>>>> 2fb092aec4d357d4de20a4ae674eb7240c12b88b
 node_modules/
 .next/
 out/
 dist/
 build/
 .vercel/
+<<<<<<< HEAD
 next-env.d.ts
 
 # Python
@@ -42,3 +49,20 @@ logs/
 .DS_Store
 Thumbs.db
 
+=======
+
+# Environment
+.env
+.env.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Editor
+.vscode/
+
+# OS
+.DS_Store
+>>>>>>> 2fb092aec4d357d4de20a4ae674eb7240c12b88b
