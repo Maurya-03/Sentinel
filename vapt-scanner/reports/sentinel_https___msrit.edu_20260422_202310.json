@@ -1,0 +1,283 @@
+{
+  "sentinel_version": "1.0.0",
+  "scan_timestamp": "2026-04-22T14:53:10.987134+00:00",
+  "target": "https://msrit.edu",
+  "summary": {
+    "total_vulnerabilities": 11,
+    "severity_breakdown": {
+      "CRITICAL": 0,
+      "HIGH": 0,
+      "MEDIUM": 3,
+      "LOW": 8,
+      "INFO": 0
+    },
+    "overall_risk_score": 5.9,
+    "risk_rating": "MEDIUM"
+  },
+  "vulnerabilities": [
+    {
+      "type": "Missing Security Header",
+      "header": "Content-Security-Policy",
+      "url": "https://msrit.edu",
+      "severity": "MEDIUM",
+      "vuln_key": "MISSING_CSP",
+      "evidence": "CSP header missing — XSS and data injection protections are not enforced by browser.",
+      "numeric_score": 5.5,
+      "cwe": "CWE-693",
+      "owasp": "A05:2021 - Security Misconfiguration",
+      "ai_analysis": {
+        "explanation": "The reason for the missing Security Header (specifically, Content Security Policy - CSP) at the URL <https://msrit.edu> is that the website's developers have neglected to implement adequate security measures in their web application codebase. This vulnerability allows potential attackers to perform cross-site scripting attacks and data injection, as the browser does not enforce protections against these threats due to the absence of a CSP header. By properly enforcing Content Security Policy, website developers can significantly reduce the risk of such cybersecurity issues.",
+        "impact": "Increases attack surface for XSS exploitation. Allows loading of arbitrary external scripts, styles, and frames. Enables clickjacking and data exfiltration to attacker-controlled domains.",
+        "mitigation": [
+          "[AI Recommendation] To address the Missing Security Header vulnerability at the 'a' parameter field of <https://msrit.edu>, implement Content Security Policy (CSP) by adding the necessary CSP headers to your web application server configuration. This will help prevent Cross-Site Scripting (XSS) attacks. For example, you can use the 'Content-Security-Policy' header in your HTTP response.",
+          "Implement a strict CSP: default-src 'self'; script-src 'self' 'nonce-{random}'",
+          "Start with report-only mode (Content-Security-Policy-Report-Only) to detect violations without breaking functionality",
+          "Use CSP nonces or hashes instead of 'unsafe-inline'",
+          "Define report-uri or report-to for violation monitoring"
+        ],
+        "confidence": "99%",
+        "source": "llm+kb"
+      }
+    },
+    {
+      "type": "Missing Security Header",
+      "header": "X-Frame-Options",
+      "url": "https://msrit.edu",
+      "severity": "MEDIUM",
+      "vuln_key": "MISSING_X_FRAME_OPTIONS",
+      "evidence": "X-Frame-Options missing — page may be embedded in an iframe (clickjacking risk).",
+      "numeric_score": 5.5,
+      "cwe": "CWE-1021",
+      "owasp": "A05:2021 - Security Misconfiguration",
+      "ai_analysis": {
+        "explanation": "The missing X-Frame-Options header in the website <https://msrit.edu> signifies that the site lacks a crucial security measure that prevents it from being embedded within another webpage (such as an iframe) without permission. This vulnerability can lead to clickjacking attacks, where an attacker could potentially trick users into performing actions on the vulnerable website unknowingly. The root cause of this issue is the absence of proper security configuration by the website administrators that would protect against such embedding and potential exploitation by malicious actors.",
+        "impact": "Clickjacking attacks enabling unauthorized actions, UI redressing, phishing via deceptive overlays, and potential CSRF bypass.",
+        "mitigation": [
+          "[AI Recommendation] To address the Missing Security Header vulnerability in the 'a parameter' field at https://msrit.edu, implement Content Security Policy (CSP) to restrict loading content only from trusted sources by adding a CSP header to the web application's response.",
+          "Add: X-Frame-Options: DENY (or SAMEORIGIN if iframe embedding is needed internally)",
+          "Alternatively, use CSP frame-ancestors directive: frame-ancestors 'none'",
+          "Test iframe embedding from external origins is properly blocked"
+        ],
+        "confidence": "99%",
+        "source": "llm+kb"
+      }
+    },
+    {
+      "type": "Missing Security Header",
+      "header": "Strict-Transport-Security",
+      "url": "https://msrit.edu",
+      "severity": "MEDIUM",
+      "vuln_key": "MISSING_HSTS",
+      "evidence": "HSTS missing — connections may be downgraded from HTTPS to HTTP (SSL stripping).",
+      "numeric_score": 5.5,
+      "cwe": "CWE-319",
+      "owasp": "A05:2021 - Security Misconfiguration",
+      "ai_analysis": {
+        "explanation": "The Missing Security Header issue at <https://msrit.edu> indicates that the website does not properly implement the HTTP Strict Transport Security (HSTS) protocol. HSTS is a security measure designed to prevent an attack known as SSL stripping, where an untrusted third-party intercepts and manipulates encrypted communications by downgrading them from HTTPS to plain HTTP. In this case, since the HSTS header is missing, the web server does not enforce HTTPS connections, leaving the site vulnerable to potential attacks that can compromise sensitive user data transmitted over the network.",
+        "impact": "Susceptibility to man-in-the-middle attacks, SSL stripping, and cookie theft over unencrypted connections. Particularly dangerous on public Wi-Fi networks.",
+        "mitigation": [
+          "[AI Recommendation] To mitigate the Missing Security Header vulnerability at <https://msrit.edu> in the 'a parameter' field, consider implementing Content Security Policy (CSP) by adding a CSP header to your web application server configuration, ensuring strict controls on allowed sources for various resources like scripts and styles.",
+          "Add: Strict-Transport-Security: max-age=31536000; includeSubDomains; preload",
+          "Ensure all HTTP traffic is permanently redirected (301) to HTTPS",
+          "Submit domain to HSTS preload list at hstspreload.org",
+          "Set max-age to at least 1 year (31536000 seconds)"
+        ],
+        "confidence": "99%",
+        "source": "llm+kb"
+      }
+    },
+    {
+      "type": "Open Port",
+      "host": "msrit.edu",
+      "port": 53,
+      "service": "DNS",
+      "severity": "LOW",
+      "evidence": "TCP port 53 (DNS) is open and accepting connections",
+      "numeric_score": 2.0,
+      "cwe": "CWE-200",
+      "owasp": "A05:2021 - Security Misconfiguration",
+      "ai_analysis": {
+        "explanation": "The open DNS port (TCP 53) vulnerability usually exists due to an incorrect network configuration or a service misconfiguration. This means that a system or device has its DNS server actively listening for incoming connections, possibly exposing it to potential cyber threats such as DNS amplification attacks, cache poisoning, or DNS tunneling. The root cause lies in the setup where security measures around DNS are not properly implemented or are too lax, leaving this critical service potentially vulnerable to attacks.",
+        "impact": "Direct exploitation of service vulnerabilities, brute-force attacks on authentication, lateral movement if internal services are exposed, and information disclosure about the technology stack.",
+        "mitigation": [
+          "[AI Recommendation] To mitigate the Open Port vulnerability on the web application for the 'a parameter' field, implement Content Security Policy (CSP) headers, specifically the 'X-Content-Security-Policy' or 'Content-Security-Policy' header, to restrict the sources of JavaScript and other resources.",
+          "Close all ports not required for the application to function",
+          "Apply firewall rules (iptables, AWS Security Groups, etc.) to restrict access",
+          "Ensure all exposed services run with updated, patched software",
+          "Disable default accounts and change default credentials immediately",
+          "Segment internal services (database, admin) from the public-facing network"
+        ],
+        "confidence": "99%",
+        "source": "llm+kb"
+      }
+    },
+    {
+      "type": "Open Port",
+      "host": "msrit.edu",
+      "port": 80,
+      "service": "HTTP",
+      "severity": "LOW",
+      "evidence": "TCP port 80 (HTTP) is open and accepting connections",
+      "numeric_score": 2.0,
+      "cwe": "CWE-200",
+      "owasp": "A05:2021 - Security Misconfiguration",
+      "ai_analysis": {
+        "explanation": "The open port 80 (HTTP) vulnerability exists because the system or application has been configured to accept incoming network traffic on that particular port, which is typically used for web services. This could be due to an intentional setup for web-based functionalities or potentially unintended exposure caused by improper configuration, misconfiguration, or a lack of security best practices being followed in the system's development and deployment. The vulnerability might provide potential attackers with a means to access and exploit the system if not properly secured.",
+        "impact": "Direct exploitation of service vulnerabilities, brute-force attacks on authentication, lateral movement if internal services are exposed, and information disclosure about the technology stack.",
+        "mitigation": [
+          "[AI Recommendation] To mitigate the open port vulnerability at the 'a parameter' endpoint, consider implementing Content Security Policy (CSP) headers to restrict interactions with only trusted resources. For example, you could use the X-Content-Security-Policy header in your server response.",
+          "Close all ports not required for the application to function",
+          "Apply firewall rules (iptables, AWS Security Groups, etc.) to restrict access",
+          "Ensure all exposed services run with updated, patched software",
+          "Disable default accounts and change default credentials immediately",
+          "Segment internal services (database, admin) from the public-facing network"
+        ],
+        "confidence": "99%",
+        "source": "llm+kb"
+      }
+    },
+    {
+      "type": "Open Port",
+      "host": "msrit.edu",
+      "port": 443,
+      "service": "HTTPS",
+      "severity": "LOW",
+      "evidence": "TCP port 443 (HTTPS) is open and accepting connections",
+      "numeric_score": 2.0,
+      "cwe": "CWE-200",
+      "owasp": "A05:2021 - Security Misconfiguration",
+      "ai_analysis": {
+        "explanation": "The open port issue you've found with TCP port 443 indicates that a service using HTTPS protocol is running and accepting connections on your system. This vulnerability may exist because the system administrator has intentionally allowed this service for secure communication, or it could be an unintended exposure due to misconfiguration, inadequate security practices, or outdated software where a server process is bound to listen on port 443 without necessary security measures in place.",
+        "impact": "Direct exploitation of service vulnerabilities, brute-force attacks on authentication, lateral movement if internal services are exposed, and information disclosure about the technology stack.",
+        "mitigation": [
+          "[AI Recommendation] To mitigate the Open Port vulnerability in the 'a parameter' field, implement Content Security Policy (CSP) headers in your web application to restrict the sources of executed scripts and prevent unauthorized access from malicious sources. Specifically, use the `Content-Security-Policy` header in your server responses or the `meta` tag in your HTML documents for browser enforcement.",
+          "Close all ports not required for the application to function",
+          "Apply firewall rules (iptables, AWS Security Groups, etc.) to restrict access",
+          "Ensure all exposed services run with updated, patched software",
+          "Disable default accounts and change default credentials immediately",
+          "Segment internal services (database, admin) from the public-facing network"
+        ],
+        "confidence": "99%",
+        "source": "llm+kb"
+      }
+    },
+    {
+      "type": "Missing Security Header",
+      "header": "X-XSS-Protection",
+      "url": "https://msrit.edu",
+      "severity": "LOW",
+      "vuln_key": "MISSING_XSS_PROTECTION",
+      "evidence": "X-XSS-Protection missing — legacy browser XSS filter not enforced.",
+      "numeric_score": 2.0,
+      "cwe": "N/A",
+      "owasp": "N/A",
+      "ai_analysis": {
+        "explanation": "The missing X-XSS-Protection header at https://msrit.edu indicates that the website does not have a built-in protection mechanism against cross-site scripting (XSS) attacks. This vulnerability exists because the website developers might have overlooked or intentionally omitted setting this security measure, which can help prevent attackers from injecting malicious scripts into web pages viewed by users, potentially compromising their data or the integrity of the site.",
+        "impact": "Exploitation of this vulnerability could lead to data compromise, unauthorized access, or degraded security posture.",
+        "mitigation": [
+          "[AI Recommendation] To address the Missing Security Header vulnerability in the 'a' parameter field at <https://msrit.edu>, it is recommended to implement Content Security Policy (CSP) by adding a CSP header to the web application's response to restrict the allowed sources for loading resources, specifically for the 'a' tag.",
+          "Apply strict server-side input validation and output encoding",
+          "Review application code for unsanitized data handling",
+          "Implement security-focused code review and automated SAST scanning",
+          "Apply the principle of least privilege across all application layers"
+        ],
+        "confidence": "99%",
+        "source": "llm+kb"
+      }
+    },
+    {
+      "type": "Missing Security Header",
+      "header": "X-Content-Type-Options",
+      "url": "https://msrit.edu",
+      "severity": "LOW",
+      "vuln_key": "MISSING_X_CONTENT_TYPE",
+      "evidence": "X-Content-Type-Options missing — MIME sniffing attacks possible.",
+      "numeric_score": 2.0,
+      "cwe": "CWE-430",
+      "owasp": "A05:2021 - Security Misconfiguration",
+      "ai_analysis": {
+        "explanation": "The missing X-Content-Type-Options header at https://msrit.edu allows for MIME sniffing attacks because this security header is used to prevent a server from attempting to guess (or 'sniff') the type of content it's receiving, which can lead to malicious data being wrongly executed. Without the X-Content-Type-Options header, the web application becomes vulnerable to attacks where an attacker may manipulate the data type, potentially leading to security breaches.",
+        "impact": "MIME confusion attacks allowing execution of uploaded files as HTML or JavaScript, enabling XSS via file uploads.",
+        "mitigation": [
+          "[AI Recommendation] To address the Missing Security Header vulnerability at <https://msrit.edu> for the 'a' parameter field, you should implement Content Security Policy (CSP) headers, specifically the `Content-Security-Policy` header, which can help prevent Cross-Site Scripting (XSS) attacks.",
+          "Add: X-Content-Type-Options: nosniff to all responses",
+          "Ensure correct Content-Type headers are set on all responses"
+        ],
+        "confidence": "99%",
+        "source": "llm+kb"
+      }
+    },
+    {
+      "type": "Missing Security Header",
+      "header": "Referrer-Policy",
+      "url": "https://msrit.edu",
+      "severity": "LOW",
+      "vuln_key": "MISSING_REFERRER_POLICY",
+      "evidence": "Referrer-Policy missing — full URL may leak in Referer headers to third parties.",
+      "numeric_score": 2.0,
+      "cwe": "N/A",
+      "owasp": "N/A",
+      "ai_analysis": {
+        "explanation": "The missing Security Header issue at <https://msrit.edu> specifically refers to the absence of a Referrer-Policy header. This vulnerability arises because the website does not explicitly specify how much information should be sent along with Referer headers when a user navigates from one page to another. As a result, sensitive data may unintentionally leak to third parties during these transactions, potentially compromising user privacy and security.",
+        "impact": "Exploitation of this vulnerability could lead to data compromise, unauthorized access, or degraded security posture.",
+        "mitigation": [
+          "[AI Recommendation] To mitigate the Missing Security Header vulnerability in the 'a parameter' field at <https://msrit.edu>, consider implementing Content-Security-Policy (CSP) to restrict and control the execution of potentially harmful scripts.",
+          "Apply strict server-side input validation and output encoding",
+          "Review application code for unsanitized data handling",
+          "Implement security-focused code review and automated SAST scanning",
+          "Apply the principle of least privilege across all application layers"
+        ],
+        "confidence": "99%",
+        "source": "llm+kb"
+      }
+    },
+    {
+      "type": "Missing Security Header",
+      "header": "Permissions-Policy",
+      "url": "https://msrit.edu",
+      "severity": "LOW",
+      "vuln_key": "MISSING_PERMISSIONS_POLICY",
+      "evidence": "Permissions-Policy missing — browser feature access is not restricted.",
+      "numeric_score": 2.0,
+      "cwe": "N/A",
+      "owasp": "N/A",
+      "ai_analysis": {
+        "explanation": "The Missing Security Header vulnerability at <https://msrit.edu> specifically refers to the absence of a Permissions-Policy header. This header is crucial because it restricts browser features (like geolocation, camera access, microphone access, etc.) according to the website's policy, ensuring that only authorized features are used and protecting user privacy. In this case, the vulnerability exists because the website has not been configured to include a Permissions-Policy header, leaving its feature permissions unnecessarily broad and potentially exposing users to potential security risks.",
+        "impact": "Exploitation of this vulnerability could lead to data compromise, unauthorized access, or degraded security posture.",
+        "mitigation": [
+          "[AI Recommendation] To address the Missing Security Header vulnerability in the 'a' parameter field at <https://msrit.edu>, implement Content-Security-Policy (CSP) for your web application, which can be done using the Content-Security-Policy HTTP response header. This helps prevent Cross-Site Scripting (XSS) attacks by restricting the execution of scripts to trusted sources.",
+          "Apply strict server-side input validation and output encoding",
+          "Review application code for unsanitized data handling",
+          "Implement security-focused code review and automated SAST scanning",
+          "Apply the principle of least privilege across all application layers"
+        ],
+        "confidence": "99%",
+        "source": "llm+kb"
+      }
+    },
+    {
+      "type": "Information Disclosure",
+      "header": "Server",
+      "url": "https://msrit.edu",
+      "severity": "LOW",
+      "vuln_key": "INFO_DISCLOSURE",
+      "evidence": "Server: AmazonS3 — technology stack revealed to attackers",
+      "numeric_score": 2.0,
+      "cwe": "N/A",
+      "owasp": "N/A",
+      "ai_analysis": {
+        "explanation": "The information disclosure vulnerability at <https://msrit.edu> is due to the server's use of Amazon S3, a cloud storage service, which inadvertently reveals the technology stack being employed by the website. This can happen when the S3 bucket is misconfigured or lacks sufficient security measures, resulting in unintended information exposure to potential attackers.",
+        "impact": "Exploitation of this vulnerability could lead to data compromise, unauthorized access, or degraded security posture.",
+        "mitigation": [
+          "[AI Recommendation] To address the Information Disclosure vulnerability in the 'a' parameter at <https://msrit.edu>, consider implementing input validation and output encoding for user-supplied data using a secure library such as OWASP ESAPI (Enterprise Security API) or the PHP Filter extension to sanitize and escape potentially dangerous characters.",
+          "Apply strict server-side input validation and output encoding",
+          "Review application code for unsanitized data handling",
+          "Implement security-focused code review and automated SAST scanning",
+          "Apply the principle of least privilege across all application layers"
+        ],
+        "confidence": "99%",
+        "source": "llm+kb"
+      }
+    }
+  ]
+}

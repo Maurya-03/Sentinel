@@ -1,0 +1,43 @@
+{
+  "sentinel_version": "1.0.0",
+  "scan_timestamp": "2026-04-08T12:53:42.689446+00:00",
+  "target": "http://testphp.vulnweb.com",
+  "summary": {
+    "total_vulnerabilities": 1,
+    "severity_breakdown": {
+      "CRITICAL": 0,
+      "HIGH": 0,
+      "MEDIUM": 0,
+      "LOW": 1,
+      "INFO": 0
+    },
+    "overall_risk_score": 1.4,
+    "risk_rating": "LOW"
+  },
+  "vulnerabilities": [
+    {
+      "type": "Open Port",
+      "host": "testphp.vulnweb.com",
+      "port": 53,
+      "service": "DNS",
+      "severity": "LOW",
+      "evidence": "TCP port 53 (DNS) is open and accepting connections",
+      "numeric_score": 2.0,
+      "cwe": "CWE-200",
+      "owasp": "A05:2021 - Security Misconfiguration",
+      "ai_analysis": {
+        "explanation": "An unnecessary or unexpected port is open and accepting connections. Exposed services expand the attack surface, especially if running outdated software or default credentials.",
+        "impact": "Direct exploitation of service vulnerabilities, brute-force attacks on authentication, lateral movement if internal services are exposed, and information disclosure about the technology stack.",
+        "mitigation": [
+          "Close all ports not required for the application to function",
+          "Apply firewall rules (iptables, AWS Security Groups, etc.) to restrict access",
+          "Ensure all exposed services run with updated, patched software",
+          "Disable default accounts and change default credentials immediately",
+          "Segment internal services (database, admin) from the public-facing network"
+        ],
+        "confidence": "99%",
+        "source": "rule_based"
+      }
+    }
+  ]
+}

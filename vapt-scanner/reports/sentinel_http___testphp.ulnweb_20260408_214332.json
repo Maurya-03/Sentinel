@@ -1,0 +1,18 @@
+{
+  "sentinel_version": "1.0.0",
+  "scan_timestamp": "2026-04-08T16:13:32.794420+00:00",
+  "target": "http://testphp.ulnweb",
+  "summary": {
+    "total_vulnerabilities": 0,
+    "severity_breakdown": {
+      "CRITICAL": 0,
+      "HIGH": 0,
+      "MEDIUM": 0,
+      "LOW": 0,
+      "INFO": 0
+    },
+    "overall_risk_score": 0.0,
+    "risk_rating": "NONE"
+  },
+  "vulnerabilities": []
+}
