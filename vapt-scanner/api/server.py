@@ -6,32 +6,41 @@ import uuid
 import asyncio
 import warnings
 import urllib3
+import sys
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional
-from concurrent.futures import ThreadPoolExecutor
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, HttpUrl
+
+# Keep scanner progress logging from crashing on Windows when stdout/stderr are
+# redirected to files opened with the default ANSI code page.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
 
 # Suppress SSL warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 warnings.filterwarnings("ignore")
 
 # ── Bootstrap sys.path so imports from vapt-scanner root work ────────────
-import sys, os
+import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from scanner.crawler         import crawl
-from scanner.sqli_scanner    import scan_sqli
-from scanner.xss_scanner     import scan_xss
+from scanner.crawler         import async_collect_forms, async_crawl
+from scanner.sqli_scanner    import async_scan_sqli
+from scanner.xss_scanner     import async_scan_xss
 from scanner.port_scanner    import scan_ports
-from scanner.header_analyzer import analyze_headers
+from scanner.header_analyzer import async_analyze_headers
+from scanner.async_http      import AsyncHTTPClient
+from scanner.async_pipeline  import target_unreachable_finding
 from ai_engine.analyzer      import analyze
 from report.formatter        import format_report
 from report.report_generator import save_report
+from config import SCAN_WORKERS, TASK_QUEUE_SIZE
 
 
 app = FastAPI(
@@ -49,7 +58,8 @@ app.add_middleware(
 
 # In-memory job store  { job_id: { status, progress, report, error } }
 _jobs: Dict[str, Dict[str, Any]] = {}
-_executor = ThreadPoolExecutor(max_workers=4)
+_job_queue: asyncio.Queue = asyncio.Queue(maxsize=TASK_QUEUE_SIZE)
+_workers_started = False
 
 
 # ── Request / Response Models ─────────────────────────────────────────────
@@ -74,27 +84,31 @@ def _update_job(job_id: str, **kwargs):
     _jobs[job_id].update(kwargs)
 
 
-def _run_scan_job(job_id: str, target: str, skip_ports: bool):
-    """Blocking scan pipeline — runs in thread pool."""
+async def _run_scan_job(job_id: str, target: str, skip_ports: bool) -> None:
+    """Async scan pipeline with concurrent modules."""
+    client = None
     try:
+        client = AsyncHTTPClient()
         _update_job(job_id, status="running", progress=5, message="Crawling target…")
-        urls = crawl(target)
+        urls = await async_crawl(target, client)
+        forms_by_url = await async_collect_forms(urls, client)
 
-        _update_job(job_id, progress=25, message=f"Crawled {len(urls)} URLs — scanning SQLi…")
-        sqli = scan_sqli(urls)
-
-        _update_job(job_id, progress=45, message=f"{len(sqli)} SQLi findings — scanning XSS…")
-        xss = scan_xss(urls)
-
+        _update_job(job_id, progress=25, message=f"Crawled {len(urls)} URLs — scanning SQLi + XSS…")
+        sqli_task = asyncio.create_task(async_scan_sqli(urls, client, forms_by_url))
+        xss_task = asyncio.create_task(async_scan_xss(urls, client, forms_by_url))
+        sqli, xss = await asyncio.gather(sqli_task, xss_task)
         all_findings = sqli + xss
+
+        if not urls:
+            all_findings.append(target_unreachable_finding(target))
 
         if not skip_ports:
             _update_job(job_id, progress=60, message="Running port scan…")
-            ports = scan_ports(target)
+            ports = await asyncio.to_thread(scan_ports, target)
             all_findings.extend(ports)
 
         _update_job(job_id, progress=75, message="Analysing security headers…")
-        headers = analyze_headers(target)
+        headers = await async_analyze_headers(target, client)
         all_findings.extend(headers)
 
         _update_job(job_id, progress=88, message="Running XAI analysis…")
@@ -103,17 +117,35 @@ def _run_scan_job(job_id: str, target: str, skip_ports: bool):
         report = format_report(target, enriched)
         save_report(report)
 
-        _update_job(
-            job_id,
-            status="done",
-            progress=100,
-            message="Scan complete",
-            report=report,
-        )
+        _update_job(job_id, status="done", progress=100, message="Scan complete", report=report)
 
     except Exception as exc:
-        _update_job(job_id, status="error", progress=0,
-                    message="Scan failed", error=str(exc))
+        _update_job(job_id, status="error", progress=0, message="Scan failed", error=str(exc))
+    finally:
+        if client is not None:
+            await client.close()
+
+
+async def _worker() -> None:
+    while True:
+        job_id, target, skip_ports = await _job_queue.get()
+        await _run_scan_job(job_id, target, skip_ports)
+        _job_queue.task_done()
+
+
+@app.on_event("startup")
+async def _startup() -> None:
+    global _workers_started
+    if _workers_started:
+        return
+    try:
+        import uvloop
+        asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+    except Exception:
+        pass
+    for _ in range(SCAN_WORKERS):
+        asyncio.create_task(_worker())
+    _workers_started = True
 
 
 # ── Routes ────────────────────────────────────────────────────────────────
@@ -124,7 +156,7 @@ def health():
 
 
 @app.post("/api/scan", response_model=JobStatus, status_code=202)
-def start_scan(req: ScanRequest, background_tasks: BackgroundTasks):
+async def start_scan(req: ScanRequest):
     target = req.target
     if not target.startswith(("http://", "https://")):
         target = "http://" + target
@@ -141,7 +173,7 @@ def start_scan(req: ScanRequest, background_tasks: BackgroundTasks):
         "created":  datetime.now(timezone.utc).isoformat(),
     }
 
-    background_tasks.add_task(_executor.submit, _run_scan_job, job_id, target, req.skip_ports)
+    await _job_queue.put((job_id, target, req.skip_ports))
     return _jobs[job_id]
 
 

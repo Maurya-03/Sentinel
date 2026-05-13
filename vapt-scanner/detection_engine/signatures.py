@@ -12,6 +12,7 @@ VULN_TYPE_KEYS = {
     "Information Disclosure":              "INFO_DISCLOSURE",
     "Path Traversal":                      "PATH_TRAVERSAL",
     "Open Redirect":                       "OPEN_REDIRECT",
+    "Target Unreachable":                  "TARGET_UNREACHABLE",
 }
 
 HEADER_VULN_KEYS = {

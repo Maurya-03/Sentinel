@@ -3,6 +3,8 @@
 # HTTP scanning
 requests>=2.31.0
 urllib3>=2.0.0
+aiohttp>=3.9.0
+aiodns>=3.2.0
 
 # HTML parsing
 beautifulsoup4>=4.12.0

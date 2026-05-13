@@ -3,7 +3,7 @@
 import requests
 import urllib.parse
 from typing import Optional
-from config import DEFAULT_TIMEOUT, USER_AGENT
+from config import DEFAULT_TIMEOUT, USER_AGENT, EXCLUDED_EXTENSIONS
 
 
 def build_session() -> requests.Session:
@@ -47,11 +47,28 @@ def normalize_url(base: str, href: str) -> Optional[str]:
         joined_netloc = urllib.parse.urlparse(joined).netloc
         if joined_netloc != base_netloc:
             return None  # external domain — skip
+        if is_excluded_url(joined):
+            return None
         # strip fragment
         parsed = urllib.parse.urlparse(joined)._replace(fragment="")
         return urllib.parse.urlunparse(parsed)
     except Exception:
         return None
+
+
+def is_excluded_url(url: str) -> bool:
+    """Return True if URL is a static asset or non-http(s) resource."""
+    try:
+        parsed = urllib.parse.urlparse(url)
+        if parsed.scheme not in ("http", "https"):
+            return True
+        path = parsed.path.lower()
+        for ext in EXCLUDED_EXTENSIONS:
+            if path.endswith(ext):
+                return True
+    except Exception:
+        return True
+    return False
 
 
 def extract_base(url: str) -> str:

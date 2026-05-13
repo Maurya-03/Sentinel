@@ -10,6 +10,8 @@ from ai_engine.mitigation import get_mitigation
 from ai_engine.risk_scoring import score_finding
 from config import VULN_KB_FILE
 
+_OLLAMA_AVAILABLE = None
+
 
 def _load_kb() -> dict:
     with open(VULN_KB_FILE, "r") as f:
@@ -65,15 +67,20 @@ def analyze(findings: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 def _llm_available() -> bool:
     """Quick check if Ollama is reachable (no import of config at module level)."""
+    global _OLLAMA_AVAILABLE
+    if _OLLAMA_AVAILABLE is not None:
+        return _OLLAMA_AVAILABLE
     from config import USE_LLM, OLLAMA_BASE_URL
     if not USE_LLM:
+        _OLLAMA_AVAILABLE = False
         return False
     try:
         import requests
         r = requests.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=2)
-        return r.status_code == 200
+        _OLLAMA_AVAILABLE = r.status_code == 200
     except Exception:
-        return False
+        _OLLAMA_AVAILABLE = False
+    return _OLLAMA_AVAILABLE
 
 
 def _fallback_explanation(finding: dict) -> str:

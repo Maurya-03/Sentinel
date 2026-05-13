@@ -7,6 +7,8 @@ from typing import List, Optional
 
 from config import OLLAMA_BASE_URL, OLLAMA_MODEL, OLLAMA_TIMEOUT, USE_LLM, VULN_KB_FILE
 
+_OLLAMA_AVAILABLE: Optional[bool] = None
+
 
 def _load_kb() -> dict:
     with open(VULN_KB_FILE, "r") as f:
@@ -25,12 +27,24 @@ def get_mitigation(vuln_key: str, finding: dict) -> List[str]:
     if not steps:
         steps = _generic_mitigation(finding)
 
-    if USE_LLM:
+    if USE_LLM and _ollama_available():
         llm_step = _query_ollama_mitigation(vuln_key, finding)
         if llm_step and llm_step not in steps:
             steps.insert(0, f"[AI Recommendation] {llm_step}")
 
     return steps
+
+
+def _ollama_available() -> bool:
+    global _OLLAMA_AVAILABLE
+    if _OLLAMA_AVAILABLE is not None:
+        return _OLLAMA_AVAILABLE
+    try:
+        resp = requests.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=2)
+        _OLLAMA_AVAILABLE = resp.status_code == 200
+    except Exception:
+        _OLLAMA_AVAILABLE = False
+    return _OLLAMA_AVAILABLE
 
 
 def _query_ollama_mitigation(vuln_key: str, finding: dict) -> Optional[str]:

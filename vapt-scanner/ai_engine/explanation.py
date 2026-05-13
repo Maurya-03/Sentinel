@@ -7,6 +7,8 @@ from typing import Optional
 
 from config import OLLAMA_BASE_URL, OLLAMA_MODEL, OLLAMA_TIMEOUT, USE_LLM, VULN_KB_FILE
 
+_OLLAMA_AVAILABLE: Optional[bool] = None
+
 
 def _load_kb() -> dict:
     with open(VULN_KB_FILE, "r") as f:
@@ -22,7 +24,7 @@ def get_explanation(vuln_key: str, finding: dict) -> str:
     kb_entry = kb.get(vuln_key, {})
     base_explanation = kb_entry.get("explanation", _generic_explanation(finding))
 
-    if USE_LLM:
+    if USE_LLM and _ollama_available():
         llm_result = _query_ollama_explanation(vuln_key, finding, base_explanation)
         if llm_result:
             return llm_result
@@ -35,6 +37,18 @@ def get_impact(vuln_key: str, finding: dict) -> str:
     kb = _load_kb()
     kb_entry = kb.get(vuln_key, {})
     return kb_entry.get("impact", _generic_impact(finding))
+
+
+def _ollama_available() -> bool:
+    global _OLLAMA_AVAILABLE
+    if _OLLAMA_AVAILABLE is not None:
+        return _OLLAMA_AVAILABLE
+    try:
+        resp = requests.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=2)
+        _OLLAMA_AVAILABLE = resp.status_code == 200
+    except Exception:
+        _OLLAMA_AVAILABLE = False
+    return _OLLAMA_AVAILABLE
 
 
 def _query_ollama_explanation(vuln_key: str, finding: dict, fallback: str) -> Optional[str]:

@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import List, Dict, Any
 
 from scanner.utils import build_session, safe_get
+from scanner.async_http import AsyncHTTPClient
 from config import REQUIRED_SECURITY_HEADERS
 
 # Per-header severity and detail map
@@ -55,7 +56,7 @@ def analyze_headers(target_url: str) -> List[Dict[str, Any]]:
     response = safe_get(session, target_url)
 
     if response is None:
-        print(f"[HEADERS] Could not fetch {target_url}")
+        print(f"[HEADERS] Could not fetch {target_url} ({client.last_error or 'unknown error'})")
         return []
 
     print(f"[HEADERS] Analysing security headers for {target_url}")
@@ -84,6 +85,49 @@ def analyze_headers(target_url: str) -> List[Dict[str, Any]]:
                 "type":     "Information Disclosure",
                 "header":   info_header,
                 "url":      target_url,
+                "severity": "LOW",
+                "vuln_key": "INFO_DISCLOSURE",
+                "evidence": f"{info_header}: {val} — technology stack revealed to attackers",
+            })
+            print(f"[HEADERS] Info disclosure: {info_header} = {val}")
+
+    print(f"[HEADERS] Audit complete — {len(findings)} issues found")
+    return findings
+
+
+async def async_analyze_headers(target_url: str, client: AsyncHTTPClient) -> List[Dict[str, Any]]:
+    """Async header analysis using a shared HTTP client."""
+    response = await client.get(target_url)
+
+    if response is None:
+        print(f"[HEADERS] Could not fetch {target_url}")
+        return []
+
+    print(f"[HEADERS] Analysing security headers for {target_url}")
+    findings: List[Dict[str, Any]] = []
+    headers = {k.lower(): v for k, v in response.headers.items()}
+
+    for header in REQUIRED_SECURITY_HEADERS:
+        if header.lower() not in headers:
+            detail = HEADER_DETAILS.get(header, {})
+            finding = {
+                "type": "Missing Security Header",
+                "header": header,
+                "url": target_url,
+                "severity": detail.get("severity", "LOW"),
+                "vuln_key": detail.get("vuln_key", "MISSING_HEADER"),
+                "evidence": detail.get("description", f"{header} header is absent"),
+            }
+            findings.append(finding)
+            print(f"[HEADERS] Missing: {header}")
+
+    for info_header in ["Server", "X-Powered-By", "X-AspNet-Version"]:
+        val = headers.get(info_header.lower())
+        if val:
+            findings.append({
+                "type": "Information Disclosure",
+                "header": info_header,
+                "url": target_url,
                 "severity": "LOW",
                 "vuln_key": "INFO_DISCLOSURE",
                 "evidence": f"{info_header}: {val} — technology stack revealed to attackers",

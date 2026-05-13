@@ -24,3 +24,6 @@ dist/
 
 # Logs
 *.log
+
+# Generated scan output
+reports/*.json

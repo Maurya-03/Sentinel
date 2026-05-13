@@ -6,19 +6,20 @@ import json
 import argparse
 import warnings
 import urllib3
+import asyncio
+
+# Keep console output from crashing on Windows when redirected streams use the
+# default ANSI code page.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
 
 # Suppress SSL warnings for self-signed certs on test targets
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 warnings.filterwarnings("ignore")
 
-from scanner.crawler        import crawl
-from scanner.sqli_scanner   import scan_sqli
-from scanner.xss_scanner    import scan_xss
-from scanner.port_scanner   import scan_ports
-from scanner.header_analyzer import analyze_headers
-from ai_engine.analyzer     import analyze
-from report.formatter       import format_report
-from report.report_generator import save_report, print_report
+from scanner.async_pipeline  import async_run_scan
+from report.report_generator import print_report
 
 
 BANNER = r"""
@@ -44,51 +45,8 @@ def run_scan(target: str, skip_ports: bool = False) -> dict:
     print(f"  [*] Modules: Crawler · SQLi · XSS · Ports · Headers · XAI\n")
     print("─" * 60)
 
-    all_findings = []
-
-    # ── 1. Crawl ──────────────────────────────────────────────────────────
-    print("\n[1/6] Crawling target…")
-    urls = crawl(target)
-    print(f"      → {len(urls)} URLs discovered\n")
-
-    # ── 2. SQL Injection ──────────────────────────────────────────────────
-    print("[2/6] Running SQL Injection scanner…")
-    sqli_findings = scan_sqli(urls)
-    all_findings.extend(sqli_findings)
-    print(f"      → {len(sqli_findings)} SQLi issues found\n")
-
-    # ── 3. XSS ────────────────────────────────────────────────────────────
-    print("[3/6] Running XSS scanner…")
-    xss_findings = scan_xss(urls)
-    all_findings.extend(xss_findings)
-    print(f"      → {len(xss_findings)} XSS issues found\n")
-
-    # ── 4. Port Scan ──────────────────────────────────────────────────────
-    if not skip_ports:
-        print("[4/6] Running port scanner…")
-        port_findings = scan_ports(target)
-        all_findings.extend(port_findings)
-        print(f"      → {len(port_findings)} open ports found\n")
-    else:
-        print("[4/6] Port scan skipped (--no-ports flag)\n")
-
-    # ── 5. Header Analysis ───────────────────────────────────────────────
-    print("[5/6] Analysing security headers…")
-    header_findings = analyze_headers(target)
-    all_findings.extend(header_findings)
-    print(f"      → {len(header_findings)} header issues found\n")
-
-    # ── 6. XAI Analysis ──────────────────────────────────────────────────
-    print("[6/6] Running Explainable AI analysis…")
-    enriched = analyze(all_findings)
-    print(f"      → {len(enriched)} findings enriched\n")
-
-    # ── Report ────────────────────────────────────────────────────────────
-    report = format_report(target, enriched)
-    path   = save_report(report)
+    report = asyncio.run(async_run_scan(target, skip_ports=skip_ports))
     print_report(report)
-    print(f"\n  [✓] Report saved → {path}\n")
-
     return report
 
 

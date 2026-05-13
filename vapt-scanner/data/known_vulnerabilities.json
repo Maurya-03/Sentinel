@@ -126,5 +126,20 @@
     "references": [
       "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options"
     ]
+  },
+  "TARGET_UNREACHABLE": {
+    "cwe": "N/A",
+    "cvss_base": 0.0,
+    "severity": "INFO",
+    "owasp": "N/A",
+    "explanation": "The scanner could not connect to the target URL, so active checks could not run. This usually means the host is down, blocked by a firewall, unreachable from this machine, or the URL/scheme is incorrect.",
+    "impact": "No vulnerability conclusion can be made because the scanner did not receive a valid HTTP response from the target.",
+    "mitigation": [
+      "Confirm the URL opens from the same machine running SENTINEL",
+      "Check DNS, firewall, VPN, proxy, and target allowlist rules",
+      "Try the correct scheme and host, for example https:// instead of http://",
+      "Run the scan against a reachable authorized test target"
+    ],
+    "references": []
   }
 }

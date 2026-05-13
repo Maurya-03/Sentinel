@@ -42,7 +42,6 @@ logs/
 .env.*.local
 
 # Editor directories
-.vscode/
 .idea/
 
 # OS files
