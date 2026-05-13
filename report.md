@@ -24,7 +24,7 @@ Web application security testing is a domain dominated by two extremes: highly s
 
 - According to the Verizon 2024 Data Breach Investigations Report, web application attacks represent the most common breach pathway, with SQL Injection and XSS featuring in over 40% of application-layer incidents.
 - OWASP's 2021 Top 10 lists Injection (A03) and Security Misconfiguration (A05) as the most prevalent vulnerability classes across real-world applications.
-- Security teams report that 60–70% of scanner output is ignored due to lack of context or actionable guidance (Gartner, 2023).
+- Security teams consistently report that a majority of scanner output is ignored due to lack of context or actionable guidance, as noted in multiple industry studies on alert fatigue in security operations.
 
 ### Existing Limitations and Gaps
 
